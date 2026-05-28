@@ -1,10 +1,10 @@
-# Your Project Name
+# Your Project Name - Immersive Spatial Voice Call Experience with AI
 
-- **Problem Statement Number** - 
-- **Problem Statement Title** - *(Must exactly match one of the 11 Samsung EnnovateX AX Hackathon Problem Statements)*
-- **Team name** - *(Same as Phase 1 Team name)*
-- **Team members (Names)** - *Member 1 Name*, *Member 2 Name*
-- **Institute/College Name** - *Name*, *Campus Name & Address (In case the institute has multiple campuses)*
+- **Problem Statement Number** - 8
+- **Problem Statement Title** - *(Immersive Spatial Voice Call Experience with AI)*
+- **Team name** - *(SpatialMesh)*
+- **Team members (Names)** - *Rohith Sai Anvesh Polisetty*, *Siddharth Sivapuram*
+- **Institute/College Name** - *IIT Guwahati*
 - **Final Presentation Google Drive Link** - *Upload the PDF presentation for your final submission on Google Drive (It should be openly accessible and not behind any login wall)*
 - **Full Submission Demo Video Link** - *(Upload the Demo video on Youtube as a public or unlisted video and share the link. Google Drive uploads for video is not allowed.)*
 - **Setup & Result Reproducibility Video Link** - *(Upload the Demo video on Youtube as a public or unlisted video and share the link. Google Drive uploads for video is not allowed.)*
