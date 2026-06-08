@@ -1,0 +1,21 @@
+# Large datasets - don't push
+data/
+*.flac
+*.wav
+*.sofa
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Outputs
+output_*.wav
+test_*.wav
+
+# Documents
+*.pptx
+*.pdf
+*.ppt
+*.docx
