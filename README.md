@@ -65,6 +65,17 @@ Multi-room spatial audio — different call participants placed at different roo
 
 ---
 
+## 🔬 What We Learned
+
+| Finding | Outcome |
+|---|---|
+| GATConv silently ignores edge features | Switched to GATv2Conv — edge features now active |
+| Raw mono audio → meaningless CNN embeddings | HRTF convolution before CNN is mandatory  |
+| Saturating yaw formula → limited head tracking to ±30° | Corrected to arctan2 for true ±90° coverage  |
+| GNN position collapse on initialization | Fixed-spread initialization tensor  |
+| Repulsion loss too high → speaker clustering | Warmup schedule 0.5→0.05 over training |
+| acos in loss → gradient instability | Replaced with smooth angular_proximity |
+
 ## System Architecture
 
 ```
