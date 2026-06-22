@@ -21,7 +21,9 @@
 
 ## Demo Video
 
-**Full Demo:** https://youtu.be/VT_2EgvCe5k
+**Full Demo:** | [Watch Guide](https://youtu.be/VT_2EgvCe5k)|
+🛠️ Installation Guide (YouTube) | [Watch Guide](https://youtu.be/PEdSFaae3fc) |
+| 📊 Presentation (PDF) | [View Slides](https://drive.google.com/file/d/1mayaPPAfyEff-Vt1P6nm2eUfwn0psPMj/view?usp=sharing) |
 
 *(Put headphones on before watching — binaural effect only works on headphones)*
 
