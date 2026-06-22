@@ -331,18 +331,11 @@ def run_pipeline(clips, activity_mask, prev_positions_norm, gains=None):
     stereo_in = [_hrtf.convolve(clips[i], *prev_deg[i]) for i in range(len(clips))]
     # 2+3) build graph (CNN inside) -> GAT -> new normalized positions
     graph, _ = build_graph(stereo_in, activity_mask, _cnn, prev_positions_norm)
-    print("prev_positions_norm fed to GNN:")
-    for i, p in enumerate(prev_positions_norm):
-     print(f"  Speaker {i}: az_norm={p[0].item():.3f}  el_norm={p[1].item():.3f}")
 
     
     with torch.no_grad():
         out_norm = _gat(graph.x, graph.edge_index, graph.edge_attr)
 
-
-    print("Raw GNN output (normalized):")
-    for i, p in enumerate(out_norm):
-     print(f"  Speaker {i}: az_norm={p[0].item():.3f}  el_norm={p[1].item():.3f}")
      
     new_deg = denorm(out_norm)
 
@@ -350,10 +343,6 @@ def run_pipeline(clips, activity_mask, prev_positions_norm, gains=None):
     # new_deg = _enforce_separation(new_deg, activity_mask, min_az_sep=30.0)
 
     # --- debug ---
-    print("GNN az/el outputs (after separation):")
-    for i, (az, el) in enumerate(new_deg):
-        status = "ACTIVE" if activity_mask[i] else "muted "
-        print(f"  Speaker {i} [{status}]  az={az:+.1f}°  el={el:+.1f}°")
 
     # 4) re-convolve at corrected positions, mix only active speakers
     stereo_out = [_hrtf.convolve(clips[i], *new_deg[i]) for i in range(len(clips))]
