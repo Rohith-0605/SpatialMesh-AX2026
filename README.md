@@ -1,40 +1,265 @@
-# Your Project Name - Immersive Spatial Voice Call Experience with AI
+# SpatialMesh — Immersive 3D Spatial Audio for Multi-Party Voice Calls
 
-- **Problem Statement Number** - 8
-- **Problem Statement Title** - *(Immersive Spatial Voice Call Experience with AI)*
-- **Team name** - *(SpatialMesh)*
-- **Team members (Names)** - *Rohith Sai Anvesh Polisetty*, *Siddharth Sivapuram*
-- **Institute/College Name** - *IIT Guwahati*
-- **Final Presentation Google Drive Link** - *Upload the PDF presentation for your final submission on Google Drive (It should be openly accessible and not behind any login wall)*
-- **Full Submission Demo Video Link** - *(Upload the Demo video on Youtube as a public or unlisted video and share the link. Google Drive uploads for video is not allowed.)*
-- **Setup & Result Reproducibility Video Link** - *(Upload the Demo video on Youtube as a public or unlisted video and share the link. Google Drive uploads for video is not allowed.)*
+> **Samsung EnnovateX AX Hackathon 2026 | Problem Statement 8 | Team SpatialMesh | IIT Guwahati**
 
-### Project Artefacts
+---
 
-- **Technical Documentation** - Create a **docs** folder and add all technical details in markdown files inside this folder explaining the project Technical Stack, List of OSS libraries/projects used along with their links, the technical architecture of your solution, implementation details, installation instructions, user guide, salient features of the projects. Kindly add screenshots wherever possible.
-- **[Important]** Create a file `docs/ax.md` whiere you explain in detail how you utilizes open weight models and/or agentic development tools to implement your solution. Explain in detail your  Agentic AI setup , Agentic workflows, Reasoning & planning pipelines, Tool use / tool chaining, Coding assistants, agents, harness, MCP servers, agents.md, skills, Memory / context handling, Multi-agent orchestration systems, etc. Please highlight from your experience - what worked and **what did not work**.
-- **Source Code** - Create a **src** folder and add all developed project source codes (including training & benchmark evaluation codes) in the repo. The code must be capable of being successfully installed/executed and must run consistently on the intended platforms.
-- **Models Used** - *(Hugging Face links to all models used in the project. You are permitted to use only open weight models.)*
-- **Models Published** - *(In case you have developed a model as a part of your solution, kindly upload it on Hugging Face under appropriate open source license and add the link here.)*
-- **Datasets Used** - *(Links to all datasets used in the project. You are permitted to use publicly available datasets under licenses like Creative Commons, Open Data Commons, or equivalent.)*
-- **Datasets Published** - *(Links to all datasets created for the project and published on Hugging Face. You are allowed to publish any synthetic or proprietary dataset used in their project, but will be responsible for any legal compliance and permission for the same. The dataset can be published under Creative Commons, Open Data Commons, or equivalent license.)*
+## Submission Details
 
-#### Final Presentation
+| Field | Details |
+|-------|---------|
+| Project Name | Immersive Spatial Voice Call Experience with AI |
+| Problem Statement | 8 — Immersive Spatial Voice Call Experience with AI |
+| Team Name | SpatialMesh |
+| Team Members | Rohith Sai Anvesh Polisetty, Siddharth Sivapuram |
+| Institute | IIT Guwahati |
+| Demo Video | https://youtu.be/VT_2EgvCe5k |
+| Setup Video | *(follow-up)* |
+| Final Presentation | *(follow-up)* |
 
-Unlike Phase 1 presentation, in Phase 2 you can freely decide the template, flow and content of your technical presentation. Ensure you cover all aspects of your solution - innovation, novelty, architecture, open datasets/models developed and used, final deliverable details, KPIs of your solution, AI/Agent use, any other details. 
+---
 
-#### Full Submission Demo Video
+## Demo Video
 
-Create a high quality video demonstration your solution in real life and showcasing how it is actually solves the proposed AX Hackathon problem.
+**Full Demo:** https://youtu.be/VT_2EgvCe5k
 
-#### Setup & Result Reproducibility Video
+*(Put headphones on before watching — binaural effect only works on headphones)*
 
-To ensure reproducibility of results and to verify the presented KPIs, we require you to create a video demonstrating:
-- Step by step project installation,
-- Data/model download steps, 
-- Execution of all required codes to train the developed models (if any)
-- Execution of all evaluation codes to reproduce the presented results/KPIs 
+---
 
-### Attribution 
+## What is SpatialMesh?
 
-In case this project is built on top of an existing open source project, please provide the original project link here. Also, mention what new features were developed. Failing to attribute the source projects may lead to disqualification during the time of evaluation.
+Every voice call today is monaural — all speakers arrive from the same direction. When four people speak simultaneously, your brain has no spatial cues to separate them.
+
+SpatialMesh solves this using a **Graph Attention Network (GATv2Conv)** that models the entire multi-party call as a spatial graph. Each speaker is a node carrying a learned CNN audio embedding. Each directed edge carries 7 acoustic relationship features. The GNN jointly reasons over all speakers simultaneously and outputs optimal azimuth and elevation coordinates — placing each voice at a distinct, perceptually convincing position in 3D space.
+
+**Put your headphones on. This system requires them.**
+
+---
+
+## Product Vision — Built for the Samsung Ecosystem
+
+SpatialMesh is designed to slot directly into Samsung's existing product lines:
+
+### Galaxy Buds Pro
+SpatialMesh runs entirely on-device. The 4.81MB model fits comfortably in Galaxy Buds DSP headroom. Real-time 3D spatial calls with zero cloud dependency and zero latency penalty. Every Galaxy Buds call becomes immersive.
+
+### Samsung Meet / Galaxy AI Calls
+Drop-in SDK for Samsung's call stack. Every Galaxy AI call becomes spatially immersive — placing each participant at a distinct 3D position. Differentiates Galaxy from Apple and Google in the enterprise and consumer markets.
+
+### SmartThings Spatial
+Multi-room spatial audio — different call participants placed at different room positions. Natural conversational dynamics for distributed family calls and remote team meetings across SmartThings-connected devices.
+
+> **Open-weight · CPU-only · No cloud dependency · Deployable today**
+
+---
+
+## KPIs — All Met
+
+| KPI | Target | Achieved |
+|-----|--------|----------|
+| GNN Inference Latency | < 20ms | **0.63ms** |
+| Input Latency (20ms frame) | 40–60ms | **8.5ms** |
+| Model Size | < 50MB | **4.81MB** |
+| Spatial Separability | 95%+ | **96/100** |
+| Concurrent Speakers | 3+ | **4** |
+| UI Responsiveness | < 100ms | **~50ms** |
+
+---
+
+## System Architecture
+
+```
+Raw Mono Audio (4 speakers)
+        │
+        ▼
+[1] HRTF Pre-Convolution (SONICOM, 793 positions)
+        │
+        ▼
+[2] CNN Audio Encoder (4-layer 1D CNN → 128-dim embedding)
+        │
+        ▼
+[3] Spatial Graph (133-dim nodes, 7-dim directed edges)
+        │
+        ▼
+[4] GATv2Conv GNN (2 layers, 4 heads → az, el per speaker)
+        │
+        ▼
+[5] HRTF Re-convolution at new positions
+        │
+        ▼
+Binaural Output → Headphones
+```
+
+### Spatial Context Agent (4 Tool Calls)
+A rule-based monitor-reason-act loop running every 3 seconds:
+- `trigger_gnn_reassign()` — fires on mute/unmute events
+- `boost_ild_separation()` — fires on noise spikes, widens azimuth
+- `update_world_lock()` — fires on head yaw > 35 degrees, rotates soundfield
+- `set_speaker_priority()` — nudges dominant speaker toward front
+
+---
+
+## Models
+
+### Models Used
+- **PyTorch Geometric GATv2Conv** — open-weight graph attention network
+- **MediaPipe FaceLandmarker** — open-weight head tracking (Google)
+
+### Models Published
+| Model | Size | Link |
+|-------|------|------|
+| CNN Audio Encoder | 4.25MB | https://huggingface.co/rohith-1719/spatialmesh-models |
+| GAT-GNN Spatial Reasoner | 0.57MB | https://huggingface.co/rohith-1719/spatialmesh-models |
+
+---
+
+## Datasets
+
+### Datasets Used
+| Dataset | Purpose | Link |
+|---------|---------|------|
+| SONICOM HRTF | Binaural rendering, CNN training | https://www.sonicom.eu/dataset |
+| LibriSpeech test-clean | CNN training, demo audio | https://www.openslr.org/12 |
+
+### Datasets Published
+| Dataset | Description | Link |
+|---------|-------------|------|
+| SpatialMesh GNN Training Data | 8,000 synthetic spatial scenes (35% hard cases) | https://huggingface.co/datasets/rohith-1719/spatialmesh-data |
+
+---
+
+## Installation
+
+### Requirements
+- Python 3.10+
+- Headphones (required for binaural effect)
+
+### Steps
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Rohith-0605/SpatialMesh-AX2026
+cd SpatialMesh-AX2026/test_run
+
+# 2. Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate   # Windows
+# source .venv/bin/activate  # Linux/Mac
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Download pretrained models
+python -c "
+from huggingface_hub import hf_hub_download
+import os
+os.makedirs('models', exist_ok=True)
+hf_hub_download('rohith-1719/spatialmesh-models', 'cnn_encoder_best.pt', local_dir='models/')
+hf_hub_download('rohith-1719/spatialmesh-models', 'gat_best.pt', local_dir='models/')
+print('Models ready.')
+"
+
+# 5. Download SONICOM HRTF
+# Download P0001_FreeFieldComp_48kHz.sofa from https://www.sonicom.eu/dataset
+# Place at: sonicom/P0001/FreeFieldComp_48kHz.sofa
+
+# 6. Add LibriSpeech clips
+# Download any 4 flac clips from speaker 237 at https://www.openslr.org/12
+# Place at: librispeech/spk_237/
+
+# 7. Run
+python app.py
+```
+
+Open your browser at `http://127.0.0.1:7860`
+
+### File Structure
+```
+test_run/
+├── models/
+│   ├── cnn_encoder_best.pt      # Trained CNN encoder
+│   └── gat_best.pt              # Trained GAT-GNN
+├── sonicom/P0001/
+│   └── FreeFieldComp_48kHz.sofa # HRTF measurements
+├── librispeech/spk_237/         # 4 LibriSpeech flac clips
+├── spatialmesh_core.py          # Full pipeline
+├── spatialmesh_gat.py           # GATv2Conv model definition
+├── app.py                       # Gradio UI (Live, Demo, Mic tabs)
+├── kpi_final.py                 # KPI measurement script
+└── requirements.txt
+```
+
+---
+
+## Usage
+
+### Demo Tab (Recommended for first run)
+Click scenarios S1 through S7 in order. Each scenario:
+1. Sets a different speaker activity mask
+2. Re-fires the GNN
+3. Updates the 3D globe
+4. Plays solo intros per speaker then full binaural mix
+
+### Live Tab
+- Toggle mute checkboxes — agent auto-reassigns within 3 seconds
+- Slide noise level above 0.6 — agent widens speaker separation
+- Turn your head — MediaPipe tracks yaw, agent applies world-lock
+
+### Real-Time Mic Tab
+- Press Start Mic — your voice replaces Speaker A
+- Wait 2 seconds for buffer to fill
+- Press Spatialize — your voice is placed in 3D space
+
+---
+
+## Reproduce KPIs
+
+```bash
+python kpi_final.py
+```
+
+Output:
+```
+GNN Inference Latency : 0.63ms   (target <20ms)
+Input Latency         : 8.5ms    (target 40-60ms)
+Model Size            : 4.81MB   (target <50MB)
+Spatial Separability  : 96/100   (target 95%+)
+```
+
+---
+
+## Technical Documentation
+
+- [`docs/SpatialMesh_Technical_Documentation.md`](docs/SpatialMesh_Technical_Documentation.md) — Full architecture, CNN training, GNN training, HRTF rendering, KPI results
+- [`docs/ax.md`](docs/ax.md) — Agentic AI setup, tool calls, workflows, what worked and what did not work
+
+---
+
+## Open Source Libraries Used
+
+| Library | Purpose | Link |
+|---------|---------|------|
+| PyTorch | Deep learning framework | https://pytorch.org |
+| PyTorch Geometric | GATv2Conv graph neural network | https://pyg.org |
+| Librosa | Audio processing | https://librosa.org |
+| SoundFile | Audio I/O | https://pysoundfile.readthedocs.io |
+| Sofar | SOFA HRTF file reader | https://github.com/spatialaudio/sofar |
+| SciPy | FFT convolution | https://scipy.org |
+| MediaPipe | Face landmark detection | https://mediapipe.dev |
+| Gradio | Web UI | https://gradio.app |
+| Plotly | 3D globe visualization | https://plotly.com |
+| OpenCV | Webcam capture | https://opencv.org |
+| SoundDevice | Microphone input | https://python-sounddevice.readthedocs.io |
+
+---
+
+## Attribution
+
+This project was built from scratch for Samsung EnnovateX AX Hackathon 2026. No existing open source project was used as a base. All trained model weights (CNN encoder, GAT-GNN) were developed by the team and are published under MIT license on HuggingFace.
+
+---
+
+## License
+
+MIT License
