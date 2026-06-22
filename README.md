@@ -229,8 +229,8 @@ Spatial Separability  : 96/100   (target 95%+)
 
 ## Technical Documentation
 
-- [`docs/SpatialMesh_Technical_Documentation.md`](docs/SpatialMesh_Technical_Documentation.md) — Full architecture, CNN training, GNN training, HRTF rendering, KPI results
-- [`docs/ax.md`](docs/ax.md) — Agentic AI setup, tool calls, workflows, what worked and what did not work
+- [`SpatialMesh_Technical_Documentation.md`](SpatialMesh_Technical_Documentation.md) — Full architecture, CNN training, GNN training, HRTF rendering, KPI results
+- [`ax.md`](ax.md) — Agentic AI setup, tool calls, workflows, what worked and what did not work
 
 ---
 
