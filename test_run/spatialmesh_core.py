@@ -16,6 +16,7 @@ import librosa
 import soundfile as sf
 import sofar
 from scipy.signal import fftconvolve
+from torch_geometric.data import Data
 
 from spatialmesh_gat import SpatialMeshGAT
 
@@ -201,7 +202,6 @@ def compute_edge_features(embeddings, conv_features, current_positions, edge_pai
 
 
 def build_graph(stereo_list, activity_mask, cnn_encoder, prev_positions):
-    from torch_geometric.data import Data  # <- add here, lazy import
     raw_for_features = [s.mean(axis=0) for s in stereo_list]  # mono proxy for RMS/activity timing
     conv_features = compute_conversational_features(raw_for_features, activity_mask)
     embeddings = extract_cnn_embeddings(stereo_list, cnn_encoder)
@@ -227,16 +227,30 @@ def denorm(pos_tensor):
     return [(p[0].item() * AZ_MAX, p[1].item() * EL_MAX) for p in pos_tensor]
 
 
-def render_mix(stereo_list, activity_mask):
-    """Sums only active speakers' already-HRTF-convolved stereo streams."""
+def render_mix(stereo_list, activity_mask, gains=None):
+    if gains is None:
+        gains = [1.0] * len(stereo_list)
     n = max(s.shape[1] for s in stereo_list)
-    out = np.zeros((2, n), dtype=np.float32)
-    for s, active in zip(stereo_list, activity_mask):
+    gap = np.zeros((2, int(0.3 * SR)), dtype=np.float32)  # 0.3s silence between speakers
+    
+    # First: play each speaker solo briefly so listener can localize
+    intro_parts = []
+    for i, (s, active, g) in enumerate(zip(stereo_list, activity_mask, gains)):
         if active:
-            out[:, :s.shape[1]] += s
-    peak = np.max(np.abs(out)) or 1.0
-    return (out / peak * 0.9).T  # [samples, 2]
+            chunk = s * float(g)
+            intro_parts.append(chunk[:, :int(1.5 * SR)])  # 1.5s per speaker
+            intro_parts.append(gap)
+    
+    # Then: full mix
+    full = np.zeros((2, n), dtype=np.float32)
+    for s, active, g in zip(stereo_list, activity_mask, gains):
+        if active:
+            full[:, :s.shape[1]] += s * float(g)
 
+    # Concatenate intro + full mix
+    out = np.concatenate(intro_parts + [gap, full], axis=1)
+    peak = np.max(np.abs(out)) or 1.0
+    return (out / peak * 0.9).T
 
 def render_solo(stereo, label, out_dir):
     """Write one speaker alone, normalized -- for confirming direction by ear
@@ -272,22 +286,76 @@ def load_models(cnn_path, gat_path, sofa_path):
     _hrtf = HRTFRenderer(sofa_path)
     return _cnn, _gat, _hrtf
 
+def _enforce_separation(new_deg, activity_mask, min_az_sep=30.0):
+    """Spread ONLY active speakers so no two cluster. Preserves the GNN's
+    left-to-right ordering (its separability decision) but guarantees a clean,
+    evenly-fanned layout. Muted speakers are left untouched (not rendered)."""
+    new_deg = list(new_deg)
+    active = [i for i in range(len(new_deg)) if activity_mask[i] == 1]
+    if len(active) <= 1:
+        return new_deg  # 0 or 1 active speaker -> nothing to separate
 
-def run_pipeline(clips, activity_mask, prev_positions_norm):
-    """One full cycle. Returns (positions_deg [N,2], stereo_mix [samples,2]).
+    # order active speakers left -> right by the GNN's azimuth
+    active.sort(key=lambda i: new_deg[i][0])
+    n = len(active)
 
-    clips: list of N mono arrays.  activity_mask: np[N] of 0/1.
-    prev_positions_norm: torch [N,2] in [-1,1] (current layout, fed back).
-    """
+    # evenly spaced azimuth fan across a comfortable arc
+    spread = min(AZ_MAX, max(45.0, (n - 1) * min_az_sep / 2))
+    targets_az = np.linspace(-spread, spread, n)
+    el_variety = [15.0, -10.0, 12.0, -15.0]  # vertical spread for realism
+
+    for k, i in enumerate(active):
+        az = float(targets_az[k])
+        el = float(np.clip(el_variety[k], -EL_MAX, EL_MAX))
+        new_deg[i] = (az, el)
+    return new_deg
+
+
+def run_pipeline(clips, activity_mask, prev_positions_norm, gains=None):
+    """One full cycle. Returns (positions_deg [N,2], out_norm, stereo_mix [samples,2])."""
+# NEW — always start from a wide spread so GNN doesn't collapse
+    import torch
+    forced_init = torch.tensor([
+        [-0.8,  0.1],
+        [-0.3, -0.1],
+        [ 0.3,  0.1],
+        [ 0.8, -0.1],
+    ], dtype=torch.float32)
+# only use forced init if current positions are clustered
+    pos_spread = float(prev_positions_norm[:, 0].max() - prev_positions_norm[:, 0].min())
+    if pos_spread < 0.5:  # clustered — reset to wide spread
+        print(f"[spread reset] pos_spread={pos_spread:.2f} < 0.5, resetting to wide init")
+        prev_positions_norm = forced_init
     prev_deg = denorm(prev_positions_norm)
-    # 1) convolve each ACTIVE clip at its current position
+    # 1) convolve each clip at its current position
     stereo_in = [_hrtf.convolve(clips[i], *prev_deg[i]) for i in range(len(clips))]
     # 2+3) build graph (CNN inside) -> GAT -> new normalized positions
     graph, _ = build_graph(stereo_in, activity_mask, _cnn, prev_positions_norm)
+    print("prev_positions_norm fed to GNN:")
+    for i, p in enumerate(prev_positions_norm):
+     print(f"  Speaker {i}: az_norm={p[0].item():.3f}  el_norm={p[1].item():.3f}")
+
+    
     with torch.no_grad():
         out_norm = _gat(graph.x, graph.edge_index, graph.edge_attr)
+
+
+    print("Raw GNN output (normalized):")
+    for i, p in enumerate(out_norm):
+     print(f"  Speaker {i}: az_norm={p[0].item():.3f}  el_norm={p[1].item():.3f}")
+     
     new_deg = denorm(out_norm)
-    # 4) re-convolve at NEW positions, mix only active speakers
+
+    # --- separation post-filter: spread ACTIVE speakers only ---
+    # new_deg = _enforce_separation(new_deg, activity_mask, min_az_sep=30.0)
+
+    # --- debug ---
+    print("GNN az/el outputs (after separation):")
+    for i, (az, el) in enumerate(new_deg):
+        status = "ACTIVE" if activity_mask[i] else "muted "
+        print(f"  Speaker {i} [{status}]  az={az:+.1f}°  el={el:+.1f}°")
+
+    # 4) re-convolve at corrected positions, mix only active speakers
     stereo_out = [_hrtf.convolve(clips[i], *new_deg[i]) for i in range(len(clips))]
-    mix = render_mix(stereo_out, activity_mask)
+    mix = render_mix(stereo_out, activity_mask, gains)
     return new_deg, out_norm, mix
