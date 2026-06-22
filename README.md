@@ -13,10 +13,6 @@
 | Team Name | SpatialMesh |
 | Team Members | Rohith Sai Anvesh Polisetty, Siddharth Sivapuram |
 | Institute | IIT Guwahati |
-| Demo Video | https://youtu.be/VT_2EgvCe5k |
-| Setup Video | *(follow-up)* |
-| Final Presentation | *(follow-up)* |
-
 ---
 
 ## Demo Video
